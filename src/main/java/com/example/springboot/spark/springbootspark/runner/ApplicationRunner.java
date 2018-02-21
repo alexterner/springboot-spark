@@ -2,11 +2,9 @@ package com.example.springboot.spark.springbootspark.runner;
 
 import com.example.springboot.spark.springbootspark.dto.Count;
 import com.example.springboot.spark.springbootspark.dto.Word;
-import org.apache.commons.io.FileUtils;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.RelationalGroupedDataset;
 import org.apache.spark.sql.Row;
@@ -18,15 +16,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import scala.Tuple2;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.apache.spark.sql.functions.col;
 
@@ -48,16 +42,31 @@ public class ApplicationRunner implements CommandLineRunner{
 
         logger.info("==> Application started with command-line arguments: {} . \n To kill this application, press Ctrl + C.", Arrays.toString(args));
 
-        count();
+        //countWords();
+        
+        dataFrameExample();
 
     }
 
-    public void count() throws Exception{
+    private void dataFrameExample() {
+
+        Dataset<Row> df = sparkSession.read().format() .csv("src/main/resources/FL_insurance_sample.csv");
+
+        // Displays the content of the DataFrame to stdout
+        df.show();
+
+        // Print the schema in a tree format
+        df.printSchema();
+
+        // Select only the "country" column
+        df.select("country").show();
+
+    }
+
+    public void countWords() throws Exception{
 
 
         String path = "/usr/local/spark/README.md";
-
-        String outputPath = "~/GitHub/springboot-spark/target/counts.txt";
 
 
         /**
@@ -136,7 +145,7 @@ public class ApplicationRunner implements CommandLineRunner{
 
         RelationalGroupedDataset groupedDataset = dataFrame.groupBy(col("word"));
         groupedDataset.count().show();
-        List<Row> rows = groupedDataset.count().collectAsList();//JavaConversions.asScalaBuffer(words)).count();
+        List<Row> rows = groupedDataset.count().collectAsList();//JavaConversions.asScalaBuffer(words)).countWords();
         List<Count> wordCounts = rows.stream().map(new Function<Row, Count>() {
             @Override
             public Count apply(Row row) {
