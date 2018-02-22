@@ -27,6 +27,9 @@ import java.util.stream.Collectors;
 import static java.lang.Long.sum;
 import static org.apache.commons.lang3.CharSetUtils.count;
 import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.types.DataTypes.DoubleType;
+import static org.apache.spark.sql.types.DataTypes.LongType;
+import static org.apache.spark.sql.types.DataTypes.StringType;
 
 @Component
 public class ApplicationRunner implements CommandLineRunner{
@@ -53,12 +56,12 @@ public class ApplicationRunner implements CommandLineRunner{
     }
 
     private void dataFrameExample() {
-    //    policyID,statecode,county,number
+
         StructType schema = new StructType()
-                .add("ID", "string")
-                .add("statecode", "string")
-                .add("country", "string")
-                .add("number", "string");
+                .add("ID", LongType, true)
+                .add("statecode", StringType, true)
+                .add("country", StringType, true)
+                .add("number", DoubleType, true);
 
 
 
@@ -67,12 +70,6 @@ public class ApplicationRunner implements CommandLineRunner{
                 .schema(schema)
                 .csv("src/main/resources/FL_insurance_sample.csv");
 
-    /*    Dataset<Row> df = sparkSession.read()
-                .format("com.databricks.spark.csv")
-                .option("header", "true")
-                .option("nullValue", "")
-                .csv("src/main/resources/FL_insurance_sample.csv")
-                ;*/
 
         // Displays the content of the DataFrame to stdout
         df.show();
@@ -81,7 +78,7 @@ public class ApplicationRunner implements CommandLineRunner{
         df.printSchema();
 
         // Select only the "country" column
-       df.select("country").show();
+       df.show();
 
         RelationalGroupedDataset dfResult = df.groupBy("country");
 
@@ -90,23 +87,8 @@ public class ApplicationRunner implements CommandLineRunner{
         dfResult.count().show();//for testing
 
 
-   /*     RelationalGroupedDataset groupedDataset = df.groupBy(col("county"));
-
-        groupedDataset.count().show();
-
-        List<Row> rows = groupedDataset.count().collectAsList();//JavaConversions.asScalaBuffer(words)).countWords();
-
-        List<Count> wordCounts = rows.stream().map(new Function<Row, Count>() {
-            @Override
-            public Count apply(Row row) {
-                return new Count(row.getString(0), row.getLong(1));
-            }
-        }).collect(Collectors.toList());
-
-
-        for ( Count count : wordCounts) {
-            logger.info("C: " + count.getWord() + " -> " + count.getCount());
-        }*/
+        // Select people older than 0
+        df.filter(col("number").gt(0)).show();
 
     }
 
